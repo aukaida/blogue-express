@@ -5,13 +5,11 @@ const router = require("express").Router();
 let posts = [];
 
 // GET - VER TODOS OS POSTS
-
 router.get("/", (req, res) => {
   return res.status(200).json(posts);
 });
 
 // POST - CADASTRAR POSTS
-
 router.post("/", (req, res) => {
   var new_post = {
     id: posts.length + 1,
@@ -38,14 +36,16 @@ router.put("/:id", (req, res) => {
     up_post.autor = req.body.autor;
   }
   console.log(up_post);
+  posts[req.params.id - 1] = up_post;
   return res.status(200).json();
 });
 
 // DELETE - DELETAR POST
 router.delete("/:id", (req, res) => {
-  posts.splice(req.params.id - 1);
+  posts.splice(req.params.id - 1, 1);
   return res.status(200).json();
 });
+
 // GET - VER POST ESPECÍFICO POR ID
 router.get("/:id", (req, res) => {
   return res.status(200).json(posts[req.params.id - 1]);
