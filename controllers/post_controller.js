@@ -1,4 +1,5 @@
 const { request } = require("../routes");
+const db = require("../database.js");
 
 const router = require("express").Router();
 
@@ -6,49 +7,87 @@ let posts = [];
 
 // GET - VER TODOS OS POSTS
 router.get("/", (req, res) => {
-  return res.status(200).json(posts);
+  const posts = db.getDb().collection("posts");
+  posts
+    .find({})
+    .limit(50)
+    .toArray((err, result) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send(err);
+      } else {
+        res.status(200).send(result);
+      }
+    });
 });
-
 // POST - CADASTRAR POSTS
 router.post("/", (req, res) => {
-  var new_post = {
-    id: posts.length + 1,
+  const posts = db.getDb().collection("posts");
+  const post = {
     titulo: req.body.titulo,
-    autor: req.body.autor,
     conteudo: req.body.conteudo,
-    data: new Date().toJSON(),
+    autor: req.body.autor,
+    Data_De_Criacao: new Date(),
   };
-  posts.push(new_post);
-  return res.status(200).json(new_post);
+  posts.insertOne(post, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send(err);
+    } else {
+      res.status(200).send(result);
+    }
+  });
 });
 
 // PUT - ATUALIZAR POST
-router.put("/:id", (req, res) => {
-  var up_post = posts[req.params.id - 1];
+router.put("/:titulo", (req, res) => {
+  const posts = db.getDb().collection("posts");
+  const post = {
+    Data_De_Update: new Date(),
+  };
 
-  if (req.body.titulo) {
-    up_post.titulo = req.body.titulo;
-  }
-  if (req.body.conteudo) {
-    up_post.conteudo = req.body.conteudo;
-  }
-  if (req.body.autor) {
-    up_post.autor = req.body.autor;
-  }
-  console.log(up_post);
-  posts[req.params.id - 1] = up_post;
-  return res.status(200).json();
+  if (req.body.titulo) post.titulo = req.body.titulo;
+  if (req.body.conteudo) post.conteudo = req.body.conteudo;
+  if (req.body.autor) post.autor = req.body.autor;
+
+  posts.updateOne(
+    { titulo: req.params.titulo },
+    { $set: post },
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send(err);
+      } else {
+        res.status(200).send(result);
+      }
+    }
+  );
 });
 
 // DELETE - DELETAR POST
-router.delete("/:id", (req, res) => {
-  posts.splice(req.params.id - 1, 1);
-  return res.status(200).json();
+router.delete("/:titulo", (req, res) => {
+  const posts = db.getDb().collection("posts");
+  posts.deleteOne({ titulo: req.params.titulo }, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send(err);
+    } else {
+      res.status(200).send(result);
+    }
+  });
 });
 
-// GET - VER POST ESPECÍFICO POR ID
-router.get("/:id", (req, res) => {
-  return res.status(200).json(posts[req.params.id - 1]);
+// GET - VER POST POR TITULO
+router.get("/:titulo", (req, res) => {
+  const posts = db.getDb().collection("posts");
+  posts.findOne({ titulo: req.params.titulo }, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send(err);
+    } else {
+      res.status(200).send(result);
+    }
+  });
 });
 
 module.exports = router;
