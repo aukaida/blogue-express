@@ -1,3 +1,6 @@
+const db = require("./database.js");
+db.connectToServer();
+
 const express = require("express");
 const app = require("./routes.js");
 const port = 3000;
